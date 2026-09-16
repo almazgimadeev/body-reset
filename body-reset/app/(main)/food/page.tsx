@@ -10,6 +10,7 @@ import { useBodyResetStore } from "@/lib/store";
 import { getDay, DAYS } from "@/content/days";
 import { getMeal, buildShoppingList } from "@/content/meals";
 import { MealCard } from "@/components/MealCard";
+import { FoodDiary } from "@/components/FoodDiary";
 
 function PlateMethod() {
   return (
@@ -75,6 +76,8 @@ export default function FoodPage() {
             onSwap={(newCode) => setMealSwap(currentDayNumber, type, newCode)}
           />
         ))}
+
+        <FoodDiary dayNumber={currentDayNumber} />
 
         <Button fullWidth variant="secondary" className="mb-24 gap-2" onClick={() => setShoppingOpen(true)}>
           <ShoppingCart size={17} />

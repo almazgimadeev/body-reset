@@ -9,6 +9,7 @@ import {
   AIChatMessage,
   Subscription,
   WeeklyReview,
+  FoodLogEntry,
 } from "@/types";
 import { OnboardingInput } from "./validation/onboarding";
 
@@ -65,6 +66,7 @@ interface BodyResetState {
   mealSwaps: Record<string, string>; // "dayNumber:mealType" -> replacement meal code
   eatenMeals: Record<string, boolean>; // "dayNumber:mealType" -> eaten
   progressPhotos: Record<number, { front?: string; side?: string; back?: string }>; // keyed by milestone day
+  foodLog: Record<number, FoodLogEntry[]>; // keyed by dayNumber
   completedDayNumber: number; // Day 56 completion celebration already shown
 
   setFirstName: (name: string) => void;
@@ -81,6 +83,8 @@ interface BodyResetState {
   setMealSwap: (dayNumber: number, mealType: string, newCode: string) => void;
   toggleMealEaten: (dayNumber: number, mealType: string) => void;
   setProgressPhoto: (milestoneDay: number, type: "front" | "side" | "back", dataUrl: string) => void;
+  addFoodLogEntry: (entry: Omit<FoodLogEntry, "id" | "createdAt">) => void;
+  removeFoodLogEntry: (dayNumber: number, entryId: string) => void;
   activateSubscriptionMock: () => void;
   resetAll: () => void;
 }
@@ -97,6 +101,7 @@ export const useBodyResetStore = create<BodyResetState>()(
       mealSwaps: {},
       eatenMeals: {},
       progressPhotos: {},
+      foodLog: {},
       completedDayNumber: 0,
 
       setFirstName: (name) => set((s) => ({ profile: { ...s.profile, firstName: name } })),
@@ -180,6 +185,25 @@ export const useBodyResetStore = create<BodyResetState>()(
           },
         })),
 
+      addFoodLogEntry: (entry) =>
+        set((s) => {
+          const newEntry: FoodLogEntry = {
+            ...entry,
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString(),
+          };
+          const dayEntries = s.foodLog[entry.dayNumber] ?? [];
+          return { foodLog: { ...s.foodLog, [entry.dayNumber]: [...dayEntries, newEntry] } };
+        }),
+
+      removeFoodLogEntry: (dayNumber, entryId) =>
+        set((s) => ({
+          foodLog: {
+            ...s.foodLog,
+            [dayNumber]: (s.foodLog[dayNumber] ?? []).filter((e) => e.id !== entryId),
+          },
+        })),
+
       toggleMealEaten: (dayNumber, mealType) =>
         set((s) => {
           const key = `${dayNumber}:${mealType}`;
@@ -220,6 +244,7 @@ export const useBodyResetStore = create<BodyResetState>()(
           mealSwaps: {},
           eatenMeals: {},
           progressPhotos: {},
+          foodLog: {},
           completedDayNumber: 0,
         })),
     }),

@@ -103,6 +103,19 @@ export interface AIChatMessage {
   createdAt: string;
 }
 
+export interface FoodLogEntry {
+  id: string;
+  dayNumber: number;
+  foodId: string; // FoodDbItem id, or "custom"
+  name: string;
+  grams: number;
+  kcal: number; // computed total for this entry (grams-adjusted)
+  protein: number;
+  fat: number;
+  carbs: number;
+  createdAt: string;
+}
+
 export interface WeeklyReview {
   weekNumber: number;
   weightKg?: number;
