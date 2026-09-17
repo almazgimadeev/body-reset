@@ -10,6 +10,7 @@ import {
   Subscription,
   WeeklyReview,
   FoodLogEntry,
+  CustomTargets,
 } from "@/types";
 import { OnboardingInput } from "./validation/onboarding";
 
@@ -27,15 +28,18 @@ const emptyProfile: UserProfile = {
   heightCm: null,
   initialWeightKg: null,
   currentWeightKg: null,
+  goalWeightKg: null,
   goals: [],
   activityLevel: null,
   trainingLocation: null,
   trainingFrequency: 3,
   obstacles: [],
+  dietaryExclusions: [],
   medicalFlag: false,
   onboardingCompleted: false,
   programStartedAt: null,
   notificationsEnabled: true,
+  customTargets: null,
 };
 
 const emptySubscription: Subscription = {
@@ -85,6 +89,7 @@ interface BodyResetState {
   setProgressPhoto: (milestoneDay: number, type: "front" | "side" | "back", dataUrl: string) => void;
   addFoodLogEntry: (entry: Omit<FoodLogEntry, "id" | "createdAt">) => void;
   removeFoodLogEntry: (dayNumber: number, entryId: string) => void;
+  setCustomTargets: (targets: CustomTargets | null) => void;
   activateSubscriptionMock: () => void;
   resetAll: () => void;
 }
@@ -115,6 +120,7 @@ export const useBodyResetStore = create<BodyResetState>()(
             heightCm: data.heightCm,
             initialWeightKg: data.weightKg,
             currentWeightKg: data.weightKg,
+            goalWeightKg: data.goalWeightKg ?? null,
             goals: data.goals,
             activityLevel: data.activityLevel,
             trainingLocation: data.trainingLocation,
@@ -203,6 +209,8 @@ export const useBodyResetStore = create<BodyResetState>()(
             [dayNumber]: (s.foodLog[dayNumber] ?? []).filter((e) => e.id !== entryId),
           },
         })),
+
+      setCustomTargets: (targets) => set((s) => ({ profile: { ...s.profile, customTargets: targets } })),
 
       toggleMealEaten: (dayNumber, mealType) =>
         set((s) => {

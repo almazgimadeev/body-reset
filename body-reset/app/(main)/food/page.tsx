@@ -11,6 +11,7 @@ import { getDay, DAYS } from "@/content/days";
 import { getMeal, buildShoppingList } from "@/content/meals";
 import { MealCard } from "@/components/MealCard";
 import { FoodDiary } from "@/components/FoodDiary";
+import { FoodScanner } from "@/components/FoodScanner";
 
 function PlateMethod() {
   return (
@@ -65,6 +66,7 @@ export default function FoodPage() {
     <div>
       <Header title="Питание" subtitle={`Сегодня — День ${currentDayNumber}`} />
       <div className="px-5">
+        <FoodScanner dayNumber={currentDayNumber} />
         <PlateMethod />
 
         {meals.map(({ type, code }) => (

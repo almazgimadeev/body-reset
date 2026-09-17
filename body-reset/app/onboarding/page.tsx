@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useBodyResetStore } from "@/lib/store";
+import { estimateDailyTargets } from "@/lib/nutrition";
 import {
   onboardingSchema,
   OnboardingInput,
@@ -77,6 +78,16 @@ export default function OnboardingPage() {
   });
 
   const values = watch();
+
+  const previewTargets = estimateDailyTargets({
+    age: values.age ?? null,
+    heightCm: values.heightCm ?? null,
+    currentWeightKg: values.weightKg ?? null,
+    activityLevel: values.activityLevel ?? null,
+    goals: values.goals ?? [],
+    medicalFlag,
+    customTargets: null,
+  } as any);
 
   const toggleGoal = (g: string) => {
     const current = values.goals ?? [];
@@ -175,6 +186,8 @@ export default function OnboardingPage() {
             <h2 className="mb-1 text-xl font-semibold">Вес</h2>
             <p className="mb-1 text-[13px] text-secondary">В килограммах — это начальная точка, а не оценка</p>
             <Input type="number" inputMode="decimal" placeholder="Например, 68" {...register("weightKg")} />
+            <label className="mt-3 block text-[13px] text-secondary">Желаемый вес (необязательно)</label>
+            <Input type="number" inputMode="decimal" placeholder="Например, 62" {...register("goalWeightKg")} />
           </div>
         )}
 
@@ -281,6 +294,34 @@ export default function OnboardingPage() {
                 </div>
               ))}
             </div>
+
+            {previewTargets.hasEnoughData && (
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <p className="mb-1 text-[14px] font-medium text-primary">Расчётная цель на день</p>
+                <p className="mb-3 text-[12px] text-secondary">
+                  Ориентировочно, по стандартной формуле — не медицинская норма. Всегда можно изменить вручную в
+                  профиле.
+                </p>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div>
+                    <p className="text-[15px] font-semibold text-primary">{previewTargets.calories}</p>
+                    <p className="text-[10px] text-secondary">ккал</p>
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-semibold text-primary">{previewTargets.proteinG}</p>
+                    <p className="text-[10px] text-secondary">белок, г</p>
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-semibold text-primary">{previewTargets.fatG}</p>
+                    <p className="text-[10px] text-secondary">жиры, г</p>
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-semibold text-primary">{previewTargets.carbsG}</p>
+                    <p className="text-[10px] text-secondary">углеводы, г</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

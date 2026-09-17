@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { useBodyResetStore } from "@/lib/store";
 import { getDay } from "@/content/days";
 import { getWeek } from "@/content/weeks";
+import { estimateDailyTargets } from "@/lib/nutrition";
 
 function greeting() {
   const h = new Date().getHours();
@@ -38,7 +39,20 @@ export default function HomePage() {
   const measurements = useBodyResetStore((s) => s.measurements);
   const initialWeight = useBodyResetStore((s) => s.profile.initialWeightKg);
   const currentWeight = useBodyResetStore((s) => s.profile.currentWeightKg);
+  const profile = useBodyResetStore((s) => s.profile);
+  const foodLogToday = useBodyResetStore((s) => s.foodLog[currentDayNumber] ?? []);
   const [celebrate, setCelebrate] = useState(false);
+
+  const targets = estimateDailyTargets(profile);
+  const consumed = foodLogToday.reduce(
+    (acc, e) => ({
+      kcal: acc.kcal + e.kcal,
+      protein: acc.protein + e.protein,
+      fat: acc.fat + e.fat,
+      carbs: acc.carbs + e.carbs,
+    }),
+    { kcal: 0, protein: 0, fat: 0, carbs: 0 }
+  );
 
   const day = getDay(currentDayNumber);
   const week = getWeek(day.weekNumber);
@@ -88,6 +102,38 @@ export default function HomePage() {
           ))}
         </div>
       </Card>
+
+      {targets.hasEnoughData && (
+        <Card className="mt-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[15px] font-medium text-primary">Питание сегодня</p>
+            <span className="text-[12px] text-secondary">
+              {Math.round(consumed.kcal)} / {targets.calories} ккал
+            </span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {[
+              { label: "Калории", value: consumed.kcal, target: targets.calories, unit: "ккал" },
+              { label: "Белок", value: consumed.protein, target: targets.proteinG, unit: "г" },
+              { label: "Жиры", value: consumed.fat, target: targets.fatG, unit: "г" },
+              { label: "Углеводы", value: consumed.carbs, target: targets.carbsG, unit: "г" },
+            ].map((m) => (
+              <div key={m.label}>
+                <div className="mb-1 flex items-center justify-between text-[11px] text-secondary">
+                  <span>{m.label}</span>
+                  <span>
+                    {Math.round(m.value)} / {m.target} {m.unit}
+                  </span>
+                </div>
+                <ProgressBar value={m.target ? (m.value / m.target) * 100 : 0} />
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-secondary">
+            Ориентир, не строгая норма — подробнее и с возможностью изменить в «Питании» и «Профиле».
+          </p>
+        </Card>
+      )}
 
       <Button
         fullWidth

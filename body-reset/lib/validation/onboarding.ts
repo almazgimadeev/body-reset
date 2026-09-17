@@ -16,6 +16,9 @@ export const onboardingSchema = z.object({
   age: z.coerce.number().int().min(14, "Похоже, возраст указан некорректно").max(90),
   heightCm: z.coerce.number().int().min(120).max(220),
   weightKg: z.coerce.number().min(35).max(250),
+  // Optional — used only to personalize copy/targets, never to compute an
+  // aggressive pace of loss. Left blank is fine.
+  goalWeightKg: z.coerce.number().min(35).max(250).optional().nullable(),
   activityLevel: activityLevelEnum,
   trainingLocation: trainingLocationEnum,
   trainingFrequency: z.coerce.number().int().min(2).max(6),

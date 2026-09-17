@@ -20,6 +20,15 @@ export interface CalorieRange {
   hasEnoughData: boolean;
 }
 
+export interface DailyTargets {
+  calories: number; // single target point (midpoint of the safe range) — "Расчётная цель"
+  proteinG: number;
+  fatG: number;
+  carbsG: number;
+  range: CalorieRange;
+  hasEnoughData: boolean;
+}
+
 export function estimateDailyCalorieRange(profile: UserProfile): CalorieRange {
   const { age, heightCm, currentWeightKg, activityLevel, goals, medicalFlag } = profile;
 
@@ -48,4 +57,31 @@ export function estimateDailyCalorieRange(profile: UserProfile): CalorieRange {
   const max = Math.max(min + 100, maintenance - 300);
 
   return { min, max, maintenance, hasEnoughData: true };
+}
+
+// Full macro targets ("Расчётная цель" — spec explicitly requires this is
+// shown as an editable estimate, never as a medical prescription).
+// Protein: evidence-based 1.6–2.2 g/kg range for a moderate-deficit goal,
+// 1.4 g/kg for maintenance/other goals. Fat: ~27% of calories. Carbs: the
+// remainder. `manualOverride` (from profile.customTargets) always wins —
+// the user can edit any of these in Profile.
+export function estimateDailyTargets(profile: UserProfile): DailyTargets {
+  const range = estimateDailyCalorieRange(profile);
+  if (!range.hasEnoughData || !profile.currentWeightKg) {
+    return { calories: 0, proteinG: 0, fatG: 0, carbsG: 0, range, hasEnoughData: false };
+  }
+
+  const override = profile.customTargets;
+  const calories = override?.calories ?? Math.round((range.min + range.max) / 2);
+
+  const wantsWeightLoss = profile.goals.includes("lose_weight") && !profile.medicalFlag;
+  const proteinPerKg = wantsWeightLoss ? 1.8 : 1.4;
+  const proteinG = override?.proteinG ?? Math.round(profile.currentWeightKg * proteinPerKg);
+
+  const fatG = override?.fatG ?? Math.round((calories * 0.27) / 9);
+
+  const remainingKcal = Math.max(0, calories - proteinG * 4 - fatG * 9);
+  const carbsG = override?.carbsG ?? Math.round(remainingKcal / 4);
+
+  return { calories, proteinG, fatG, carbsG, range, hasEnoughData: true };
 }

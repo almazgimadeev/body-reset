@@ -9,6 +9,13 @@ export type Goal =
   | "fix_nutrition"
   | "build_habits";
 
+export interface CustomTargets {
+  calories?: number;
+  proteinG?: number;
+  fatG?: number;
+  carbsG?: number;
+}
+
 export interface UserProfile {
   telegramId: string | null;
   firstName: string;
@@ -16,15 +23,18 @@ export interface UserProfile {
   heightCm: number | null;
   initialWeightKg: number | null;
   currentWeightKg: number | null;
+  goalWeightKg: number | null;
   goals: Goal[];
   activityLevel: ActivityLevel | null;
   trainingLocation: TrainingLocation | null;
   trainingFrequency: number; // workouts per week
   obstacles: string[];
+  dietaryExclusions: string[]; // foods the user doesn't eat / is allergic to
   medicalFlag: boolean; // true if pregnancy / ED history / condition disclosed
   onboardingCompleted: boolean;
   programStartedAt: string | null; // ISO date, day 1 anchor
   notificationsEnabled: boolean;
+  customTargets: CustomTargets | null; // manual override of computed calorie/macro targets
 }
 
 export interface MealItem {
@@ -113,7 +123,22 @@ export interface FoodLogEntry {
   protein: number;
   fat: number;
   carbs: number;
+  mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+  source?: "manual" | "photo_scan";
+  confidence?: "high" | "medium" | "low";
   createdAt: string;
+}
+
+export interface DetectedFoodItem {
+  name: string;
+  estimatedGrams: number;
+  confidence: "high" | "medium" | "low";
+  notes?: string;
+  matchedFoodId: string | null; // matched against FOOD_DB, or null if unmatched
+  kcalPer100g: number;
+  proteinPer100g: number;
+  fatPer100g: number;
+  carbsPer100g: number;
 }
 
 export interface WeeklyReview {
